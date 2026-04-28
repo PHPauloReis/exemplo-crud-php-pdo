@@ -1,7 +1,7 @@
 services:
   db:
     image: mysql:8.0
-    container_name: mysql_db
+    container_name: apache_mysql_db
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
       MYSQL_DATABASE: ${DB_NAME}
@@ -13,7 +13,7 @@ services:
 
   web:
     build: ./php
-    container_name: php_web
+    container_name: apache_web
     env_file:
       - .env
     ports:

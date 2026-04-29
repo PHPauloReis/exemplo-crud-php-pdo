@@ -1,7 +1,7 @@
 services:
   db:
     image: mysql:8.0
-    container_name: apache_mysql_db
+    container_name: nginx_mysql_db
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
       MYSQL_DATABASE: ${DB_NAME}
@@ -13,24 +13,34 @@ services:
 
   proxysql:
     image: proxysql/proxysql:latest
-    container_name: apache_proxysql
+    container_name: nginx_proxysql
     volumes:
       - ./proxysql.cnf:/etc/proxysql.cnf
     depends_on:
       - db
     restart: always
 
-  web:
+  php:
     build: ./php
-    container_name: apache_web
+    container_name: nginx_php_fpm
     env_file:
       - .env
     environment:
       DB_HOST: proxysql
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - proxysql
+    restart: always
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_server
     ports:
       - "8080:80"
     volumes:
-      - ../html:/var/www/html
+      - ./src:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
-      - proxysql
+      - php
     restart: always

@@ -11,15 +11,26 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: always
 
+  proxysql:
+    image: proxysql/proxysql:latest
+    container_name: apache_proxysql
+    volumes:
+      - ./proxysql.cnf:/etc/proxysql.cnf
+    depends_on:
+      - db
+    restart: always
+
   web:
     build: ./php
     container_name: apache_web
     env_file:
       - .env
+    environment:
+      DB_HOST: proxysql
     ports:
       - "8080:80"
     volumes:
       - ../html:/var/www/html
     depends_on:
-      - db
+      - proxysql
     restart: always

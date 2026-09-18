@@ -38,7 +38,7 @@ export default function () {
     quantidade: '10',
   };
 
-  const response = http.post('http://localhost:8080/grande.html', payload);
+  const response = http.get('http://localhost:8080/', payload);
 
   check(response, {
     'status HTTP é 200': (r) => r.status === 200,

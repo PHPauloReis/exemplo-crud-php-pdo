@@ -19,9 +19,29 @@ try {
     throw new \PDOException($e->getMessage(), (int)$e->getCode());
 }
 
+const PRODUTOS_CACHE_KEY = 'produtos';
+const PRODUTOS_CACHE_TTL = 60;
+
+function getRedis() {
+    static $redis = null;
+    if ($redis === null) {
+        $redis = new Redis();
+        $redis->connect(getenv('REDIS_HOST') ?: 'redis', 6379);
+    }
+    return $redis;
+}
+
 function getProdutos($pdo) {
+    $redis = getRedis();
+    $cached = $redis->get(PRODUTOS_CACHE_KEY);
+    if ($cached !== false) {
+        return json_decode($cached, true);
+    }
+
     $stmt = $pdo->query('SELECT * FROM produtos');
-    return $stmt->fetchAll();
+    $produtos = $stmt->fetchAll();
+    $redis->setex(PRODUTOS_CACHE_KEY, PRODUTOS_CACHE_TTL, json_encode($produtos));
+    return $produtos;
 }
 
 function getProduto($pdo, $id) {
@@ -36,6 +56,7 @@ function createProduto($pdo, $nome, $preco, $quantidade) {
         $stmt = $pdo->prepare('INSERT INTO produtos (nome, preco, quantidade) VALUES (?, ?, ?)');
         $stmt->execute([$nome, $preco, $quantidade]);
         $pdo->commit();
+        getRedis()->del(PRODUTOS_CACHE_KEY);
         return true;
     } catch (Exception $e) {
         $pdo->rollBack();
@@ -49,6 +70,7 @@ function updateProduto($pdo, $id, $nome, $preco, $quantidade) {
         $stmt = $pdo->prepare('UPDATE produtos SET nome = ?, preco = ?, quantidade = ? WHERE id = ?');
         $stmt->execute([$nome, $preco, $quantidade, $id]);
         $pdo->commit();
+        getRedis()->del(PRODUTOS_CACHE_KEY);
         return true;
     } catch (Exception $e) {
         $pdo->rollBack();
@@ -62,6 +84,7 @@ function deleteProduto($pdo, $id) {
         $stmt = $pdo->prepare('DELETE FROM produtos WHERE id = ?');
         $stmt->execute([$id]);
         $pdo->commit();
+        getRedis()->del(PRODUTOS_CACHE_KEY);
         return true;
     } catch (Exception $e) {
         $pdo->rollBack();

@@ -20,6 +20,13 @@ services:
       - db
     restart: always
 
+  redis:
+    image: redis:alpine
+    container_name: nginx_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
   php:
     build: ./php
     container_name: nginx_php_fpm
@@ -27,10 +34,12 @@ services:
       - .env
     environment:
       DB_HOST: proxysql
+      REDIS_HOST: redis
     volumes:
       - ../html:/var/www/html
     depends_on:
       - proxysql
+      - redis
     restart: always
 
   nginx:

@@ -1,0 +1,17 @@
+target/
+.git/
+.gitignore
+.gitattributes
+.DS_Store
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+*.log
+README.md
+DEPLOYMENT.md
+API_DOCS.md
+docs/
+

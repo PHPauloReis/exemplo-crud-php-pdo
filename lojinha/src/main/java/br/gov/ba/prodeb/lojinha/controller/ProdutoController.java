@@ -41,7 +41,6 @@ public class ProdutoController {
                                     @RequestParam(value = "quantidade") Integer quantidade,
                                     @RequestParam(value = "create", required = false) String create,
                                     @RequestParam(value = "update", required = false) String update,
-                                    @RequestParam(value = "delete", required = false) String delete,
                                     RedirectAttributes redirectAttributes) {
 
         if (create != null) {
@@ -58,12 +57,16 @@ public class ProdutoController {
             produto.setQuantidade(quantidade);
             produtoService.updateProduto(id, produto);
             redirectAttributes.addFlashAttribute("message", "Produto atualizado com sucesso!");
-        } else if (delete != null && id != null) {
-            produtoService.deleteProduto(id);
-            redirectAttributes.addFlashAttribute("message", "Produto deletado com sucesso!");
         }
 
         return "redirect:/";
     }
-}
 
+    @PostMapping(params = "delete")
+    public String deletarProduto(@RequestParam Long id,
+                                 RedirectAttributes redirectAttributes) {
+        produtoService.deleteProduto(id);
+        redirectAttributes.addFlashAttribute("message", "Produto deletado com sucesso!");
+        return "redirect:/";
+    }
+}
